@@ -1,4 +1,4 @@
-﻿//MidiInternal.cs 
+﻿//Filename:    MidiInternal.cs 
 //Author:      Javier Sandoval (Lopea)
 //GitHub:      https://github.com/lopea
 //Description: Contains functions to link RtMidi to current project.
@@ -91,7 +91,7 @@ namespace Lopea.Midi.Internal
         //get current message from device given
         //returns delta time in seconds
         [DllImport(dllname)]
-        public static extern double rtmidi_in_get_message(IntPtr device, [Out] IntPtr message, [Out] UIntPtr size);
+        public static extern double rtmidi_in_get_message(IntPtr device, [In, Out] IntPtr message, [Out] IntPtr size);
 
         /* RtMidi output device functions */
 
