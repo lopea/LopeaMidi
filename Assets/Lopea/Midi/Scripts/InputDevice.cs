@@ -22,10 +22,9 @@ namespace Lopea.Midi
         }
         void Update()
         {
-            MidiData data = MidiInput.GetData(11, 2);
-            if(data != null)
+            if(MidiInput.GetMidiNote(11))
             {
-                print(data.status);
+                print("haha, yes");
             }
         }
     }

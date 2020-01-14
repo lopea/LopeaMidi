@@ -26,7 +26,7 @@ namespace Lopea.Midi.Internal
 
         // get platform specific libraries
 #if (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_LINUX_API)
-        const string dllname = "RtLinux.so";
+        const string dllname = "RtLinux";
 #elif (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_STANDALONE_WIN_API)
     const string dllname = "RtWin.dll";
 #endif
@@ -37,7 +37,9 @@ namespace Lopea.Midi.Internal
         [DllImport(dllname)]
         public static extern RtMidiApi rtmidi_in_get_current_api(IntPtr device);
         
+        
         /* RtMidi Input device functions */
+
 
         //Creates an RtMidi input device with the api, name and size limit given.
         //Returns a pointer refencing the new input device handler

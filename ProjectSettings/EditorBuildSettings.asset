@@ -4,7 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Lopea/Midi/Scenes/ok.unity
+    guid: edfb6e27a502835daa96555b0270ceae
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 8b6fa5bf93e9df0a3af0e4411ec0ca26,
       type: 2}

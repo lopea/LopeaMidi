@@ -7,6 +7,17 @@ using System.Runtime.InteropServices;
 
 public class cool : MonoBehaviour
   {
+        struct CircleData
+        {
+            public float timer;
+            public Vector2 center;
+
+        public CircleData(float timer, Vector2 center)
+        {
+            this.timer = timer;
+            this.center = center;
+        }
+    }
         IntPtr ptr, o;
 
         [Range(0, 100)]
@@ -21,13 +32,16 @@ public class cool : MonoBehaviour
         Gradient oldg;
         Vector2 center = new Vector2(4.5f, 4.5f);
         
-        float timer = 0;
+        List<CircleData> circles;
         List<byte> list = new List<byte>();
+
+        public static Color[] colors = new Color[100];
 
         // Start is called before the first frame update
         void Start()
         {
-
+            circles = new List<CircleData>();
+            circles.Add(new CircleData(0, center));
             ptr = MidiInternal.rtmidi_in_create_default();
             o = MidiInternal.rtmidi_out_create_default();
 
@@ -38,33 +52,44 @@ public class cool : MonoBehaviour
 
         // Update is called once per frame
         void Update()
-        {
-            timer += Time.deltaTime * 10;
+        {   
             list = new List<byte>();
+            
             for (int i = 0; i < header.Length; i++)
                 list.Add(header[i]);
             list.Add(15);
             list.Add(0);
+            for(int i = 0; i < circles.Count; i++)
+            {
+                if(circles[i].timer >= 100)
+                    circles.RemoveAt(i);
+                var data = circles[i];
+                data.timer += Time.deltaTime * 30; 
+                circles[i] = data;  
+            }
             for (int i = 0, y = 0; y < 10; y++)
             {
                 for (int x = 0; x < 10; x++, i++)
                 {
-                    float dist = Vector2.Distance(new Vector2(x, y), center);
+                    //reset color
+                    colors[i] = Color.black;
+
+                    
+                   
+                    for(int j = 0; j < circles.Count; j++)
+                    {
+                        float dist = Vector2.Distance(new Vector2(x, y), circles[j].center);
+                        Color col = gradient.Evaluate(Mathf.Sin(dist + Time.time * 30) / 2 + 0.5f);
+                        if(Mathf.Abs(dist - circles[j].timer) < 1)
+                            colors[i] = col;
+                    }
                     //Color col = gradient.Evaluate(Mathf.Sin((x + y + Time.time) * Mathf.PI)); // checkerboard pattern
 
-                    Color col = gradient.Evaluate(Mathf.Sin(dist + Time.time * 20) / 2 + 0.5f);
-                    if(Mathf.Abs(dist - timer) < 1)
-                    {
-                        list.Add((byte)(col.r * 63));
-                        list.Add((byte)(col.g * 63));
-                        list.Add((byte)(col.b * 63));
-                    }
-                    else
-                    {
-                        list.Add(0);
-                        list.Add(0);
-                        list.Add(0);
-                    }
+                   
+                    list.Add((byte)(colors[i].r * 62));
+                    list.Add((byte)(colors[i].g * 62));
+                    list.Add((byte)(colors[i].b * 62));
+
                    
                 }
             }
@@ -119,7 +144,7 @@ public class cool : MonoBehaviour
                 return;
             byte pos = data[1];
             center = new Vector2(pos % 10, pos/10);
-            timer = 0;
+            circles.Add(new CircleData(0,center));
         }
         void OnDisable()
         {

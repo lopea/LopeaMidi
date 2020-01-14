@@ -14,7 +14,8 @@ namespace Lopea.Midi
         ProgramChange = 0xc,
         PolyChannel = 0xd,
         PitchWheel = 0xe,
-        Sysex = 0xf
+        Sysex = 0xf,
+        Dummy = 0x0
     }
     
     

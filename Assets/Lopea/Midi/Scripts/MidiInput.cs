@@ -18,12 +18,19 @@ namespace Lopea.Midi.Internal
         class MidiInDevice
         {
             //public variables
+            
+            //port number
             public uint port;
+
+            //pointer to the RtMidiDevice
             public IntPtr ptr;
+            
+            //name of the device
             public string name;
 
             
             //private variables
+
             Dictionary<int, MidiData> activedata;
 
             public MidiInDevice(uint port, IntPtr ptr, string name)
@@ -63,18 +70,17 @@ namespace Lopea.Midi.Internal
             }
             public MidiData getData(int index)
             {
+                
                 if(activedata.ContainsKey(index))
                     return activedata[index];
                 return null;
             }
-            public void UpdateData()
+
+            public bool DataActive(int data1, MidiStatus status = MidiStatus.Dummy)
             {
-                for(int i = 0; i < activedata.Count; i ++)
-                {
-                    var status = activedata.ElementAt(i).Value.status;
-                    if(status == MidiStatus.NoteOff)
-                        activedata.Remove(activedata.ElementAt(i).Key);
-                }
+                return activedata.ContainsKey(data1) 
+                    && activedata[data1].status == status 
+                    && activedata[data1].data2 != 0;
             }
         }
         
@@ -155,7 +161,15 @@ namespace Lopea.Midi.Internal
                 currdevices = newdevices;
             }
         }
+        
+        //creates a dummy data for any uninitialized midi notes
+        //returns MidiData Dummy
+        static MidiData CreateMidiDummy(int data1, MidiStatus status = MidiStatus.Dummy)
+        {
+            return new MidiData(0,status, 0, (byte)data1, 0, null);
+        }
 
+        //removes the device from the currrent devices.
         static void removeDevice(uint port)
         {
             if(port >= GetPortCount())
@@ -176,6 +190,27 @@ namespace Lopea.Midi.Internal
             _update = null;
             _initialized = false;
         }
+
+        static int GetMidi(int data1, int port = -1, MidiStatus status = MidiStatus.Dummy)
+        {
+            if(port < 0)
+            {
+                for(int i = 0; i < currdevices.Length; i ++)
+                {
+                    if(currdevices[i].DataActive(data1, status))
+                    {
+                        return currdevices[i].getData(data1).data2;
+                    }
+                }
+                return 0;
+            }
+            else if(currdevices[port].DataActive(data1,status))
+            {
+               return currdevices[port].getData(data1).data2;
+            }
+            return 0;
+        }
+
         #endregion
 
         #region Public Static Functions
@@ -215,15 +250,38 @@ namespace Lopea.Midi.Internal
             return count;
         }
 
-        public static MidiData GetData(uint data1, uint port)
+        public static MidiData GetData(int data1, uint port)
         {
             if(!_initialized)
                 Initialize();
 
-            return currdevices[port].getData((int) data1);    
+            //if device does not exist...
+            if(port >= GetPortCount())
+            {
+                //print message
+                Debug.LogError(string.Format("Port Number {0} cannot be used for Midi Input!\nPort range 0-{1}", port,
+                                                                                   GetPortCount() - 1));
+                //send nothing
+                return null;
+            }
+
+            
+            var data = currdevices[port].getData( data1);
+            
+            //check if value does not exist to create dummy
+            if(data == null)
+                data = CreateMidiDummy(data1, MidiStatus.NoteOff);
+
+            return data;   
         }
 
-       
+        public static bool GetMidiNote(int data1, int port = -1)
+        {
+            return GetMidi(data1, port, MidiStatus.NoteOn) != 0;
+        }
+
+
+
         #endregion
         
         #region MonoBehaviour Functions
@@ -241,7 +299,7 @@ namespace Lopea.Midi.Internal
                 //loop for every device active 
                 for(int i = 0; i < currdevices.Length; i++)
                 {
-                    currdevices[i].UpdateData();
+                    
                     //loop indefinitely
                     while(true)
                     {
