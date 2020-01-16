@@ -7,15 +7,16 @@ namespace Lopea.Midi
 {
     public enum MidiStatus
     {
-        NoteOn = 0x8,
-        NoteOff = 0x9,
-        PolyKey = 0xa,
-        ControlChange = 0xb,
-        ProgramChange = 0xc,
-        PolyChannel = 0xd,
-        PitchWheel = 0xe,
-        Sysex = 0xf,
-        Dummy = 0x0
+        Dummy = 0,
+        NoteOn = 8,
+        NoteOff = 9,
+        PolyKey = 10,
+        ControlChange = 11,
+        ProgramChange = 12,
+        PolyChannel = 13,
+        PitchWheel = 14,
+        Sysex = 15,
+        
     }
     
     

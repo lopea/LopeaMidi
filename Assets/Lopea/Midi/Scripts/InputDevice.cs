@@ -22,10 +22,7 @@ namespace Lopea.Midi
         }
         void Update()
         {
-            if(MidiInput.GetMidiNote(11))
-            {
-                print("haha, yes");
-            }
+            transform.position = Vector3.up * Mathf.Lerp(0, 2, MidiInput.GetCCData(77)/127.0f);
         }
     }
 }
