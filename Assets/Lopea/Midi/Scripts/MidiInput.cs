@@ -15,6 +15,7 @@ namespace Lopea.Midi.Internal
     [HideInInspector]
     public class MidiInput : MonoBehaviour
     {
+        #region  MidiInDevice
         class MidiInDevice
         {
             //public variables
@@ -84,6 +85,7 @@ namespace Lopea.Midi.Internal
                     && activedata[data1].data2 != 0;
             }
         }
+        #endregion
 
         #region Private Static Variables
 
@@ -228,7 +230,12 @@ namespace Lopea.Midi.Internal
 
         #region Public Static Functions
         
-        //initializes MidiInput
+        
+        /// <summary>
+        /// Initializes MidiInput and connects all Midi Devices.
+        /// While it is not necessary to run this function as all Get"" functions intialize properly,
+        /// this function exists to be able to initialize at Awake().
+        /// </summary>
         public static void Initialize()
         {
             //create the update object
@@ -257,7 +264,11 @@ namespace Lopea.Midi.Internal
             }
         }
 
-        //returns the number of Midi ports available
+       
+        /// <summary>
+        /// Get the number of midi devices available
+        /// </summary>
+        /// <returns>Number of MIDI devices connected.</returns>
         public static uint GetPortCount()
         {
             //create RTMidiDevice
@@ -272,8 +283,14 @@ namespace Lopea.Midi.Internal
             return count;
         }
 
-        //get all available data from midi note number and midi device port given.
-        //An expensive process so avoid using during update.
+       
+        /// <summary>
+        /// Get available data from the MIDI note number.
+        /// An expensive process, avoid using during update.
+        /// </summary>
+        /// <param name="data1">MIDI Controller number</param>
+        /// <param name="port">Device Port</param>
+        /// <returns>MidiData struct with data from MIDI controller Number</returns>
         public static MidiData GetData(int data1, uint port)
         {
             if (!_initialized)
@@ -289,7 +306,7 @@ namespace Lopea.Midi.Internal
                 return null;
             }
 
-
+            //get data from device
             var data = currdevices[port].getData(data1);
 
             //check if value does not exist to create dummy
@@ -299,32 +316,57 @@ namespace Lopea.Midi.Internal
             return data;
         }
 
-        //Get value from CC note
-        //returns value from cc note given, optional port number for specific device
+        
+        /// <summary>
+        /// Get value from CC note.
+        /// Returns value from cc note given, 
+        /// optional port number for specific device
+        /// </summary>
+        /// <param name="data1">Controller number</param>
+        /// <param name="port">Optional: device port </param>
+        /// <returns>CC value</returns>
         public static int GetCCData(int data1, int port = -1)
         {
             return GetMidi(data1, port, MidiStatus.ControlChange);
         }
 
-        //get note velocity / velocity aftertouch
-        //returns note velocity from midi note value given
-        //finds note value from all devices unless specified a given port
+
+        /// <summary>
+        /// Get note velocity / velocity aftertouch.
+        /// Returns note velocity from midi note value given.
+        /// Finds note value from all devices unless specified a given port.
+        /// </summary>
+        /// <param name="data1">Midi Note Value</param>
+        /// <param name="port">Optional: Device port</param>
+        /// <returns>Velocity/Velocity Aftertouch</returns>
         public static int GetNoteData(int data1, int port = -1)
         {
             return GetMidi(data1, port, MidiStatus.NoteOn);
         }
 
-        //get note status
-        //returns true if note value is pressed and active
-        //finds note value from all devices unless specified a given port
+        
+        /// <summary>
+        /// Check if Midi note is pressed
+        /// returns true if note value is pressed and active, false if value is zero.
+        /// It will find the note value from all devices unless specified a given port
+        /// </summary>
+        /// <param name="data1">Number representing CC midi value</param>
+        /// <param name="port">Optional: device port to search CC midi value</param>
+        /// <returns>true if note value at data1 is not zero, false if zero</returns>
         public static bool GetMidiNote(int data1, int port = -1)
         {
             return GetNoteData(data1, port) != 0;
         }
-
-        //get CC status
-        //returns true if note value is pressed and active
-        //finds note value from all devices unless specified a given port
+        
+        
+        /// <summary>
+        ///Get Control Change status.
+        ///Returns true if CC value is active and not zero, false if value is zero.
+        ///It will find the CC value from all devices unless specified a given port
+        /// </summary>
+        /// <param name="data1">Number representing CC midi value</param>
+        /// <param name="port">Optional: device port to search CC midi value</param>
+        /// <returns>true if CC value at data1 is not zero, false if zero</returns>
         public static bool GetMidiCC(int data1, int port = -1)
         {
             return GetCCData(data1, port) != 0;
