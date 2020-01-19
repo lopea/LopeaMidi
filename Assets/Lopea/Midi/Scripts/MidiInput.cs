@@ -204,20 +204,28 @@ namespace Lopea.Midi
             _initialized = false;
         }
 
-        
-        
+
+
         //get data2 from midi
         static int GetMidi(int data1, int port = -1, MidiStatus status = MidiStatus.Dummy)
         {
+            if (!_initialized)
+            {
+                Initialize();
+                if (!_initialized)
+                {
+                    return 0;
+                }
+            }
             if (port < 0)
             {
-                    for (int i = 0; i < currdevices.Length; i++)
+                for (int i = 0; i < currdevices.Length; i++)
+                {
+                    if (currdevices[i].DataActive(data1, status))
                     {
-                        if (currdevices[i].DataActive(data1, status))
-                        {
-                            return currdevices[i].getData(data1).data2;
-                        }
+                        return currdevices[i].getData(data1).data2;
                     }
+                }
                 return 0;
             }
             else if (currdevices[port].DataActive(data1, status))
@@ -230,8 +238,8 @@ namespace Lopea.Midi
         #endregion
 
         #region Public Static Functions
-        
-        
+
+
         /// <summary>
         /// Initializes MidiInput and connects all Midi Devices.
         /// While it is not necessary to run this function as all Get"" functions intialize properly,
@@ -247,7 +255,7 @@ namespace Lopea.Midi
                 //dont initialize if there are no midi devices available
                 if (port == 0)
                 {
-                    Debug.LogWarning("No Midi Device Available! Lopea Midi is not Initializing.");
+                    Debug.LogWarning("MIDIIN: No Midi Device Available! Lopea Midi is not Initializing.");
                     return;
                 }
                 //create a gameobject with MidiInput Component
@@ -265,7 +273,7 @@ namespace Lopea.Midi
             }
         }
 
-       
+
         /// <summary>
         /// Get the number of midi devices available
         /// </summary>
@@ -284,7 +292,7 @@ namespace Lopea.Midi
             return count;
         }
 
-       
+
         /// <summary>
         /// Get available data from the MIDI note number.
         /// An expensive process, avoid using during update.
@@ -317,7 +325,7 @@ namespace Lopea.Midi
             return data;
         }
 
-        
+
         /// <summary>
         /// Get value from CC note.
         /// Returns value from cc note given, 
@@ -345,7 +353,7 @@ namespace Lopea.Midi
             return GetMidi(data1, port, MidiStatus.NoteOn);
         }
 
-        
+
         /// <summary>
         /// Check if Midi note is pressed
         /// returns true if note value is pressed and active, false if value is zero.
@@ -358,8 +366,8 @@ namespace Lopea.Midi
         {
             return GetNoteData(data1, port) != 0;
         }
-        
-        
+
+
         /// <summary>
         ///Get Control Change status.
         ///Returns true if CC value is active and not zero, false if value is zero.
@@ -404,7 +412,7 @@ namespace Lopea.Midi
                     //loop indefinitely
                     while (true)
                     {
-                        
+
 
 
                         //get message and store timestamp
@@ -429,7 +437,7 @@ namespace Lopea.Midi
                         //get status byte
                         byte status = Marshal.ReadByte(messages);
                         string s = string.Empty;
-                        
+
                         //store data
                         data = new MidiData((float)timestamp,
                                             (MidiStatus)((status >> 4)),
@@ -440,26 +448,26 @@ namespace Lopea.Midi
 
                         //some devices for whatever reason have both note on and off to be the same value
                         //so note on/off status is based on velocity
-                        if (data.status == MidiStatus.NoteOn)
+                        if (data.status == MidiStatus.NoteOn || data.status == MidiStatus.NoteOff)
                             data.status = (data.data2 != 0) ? MidiStatus.NoteOn : MidiStatus.NoteOff;
 
-                        //send data if data is sysex message sysex
-                        
-                            //create array of bytes
-                            byte[] sys = new byte[currsize];
 
-                            //send each data into bytes
-                            for (int j = 0; j < currsize; j++)
-                            {
-                                sys[j] = Marshal.ReadByte(messages, j);
-                            }
-                            data.rawData = sys;
-                        
+
+                        //create array of bytes
+                        byte[] sys = new byte[currsize];
+
+                        //send each data into bytes
+                        for (int j = 0; j < currsize; j++)
+                        {
+                            sys[j] = Marshal.ReadByte(messages, j);
+                        }
+                        data.rawData = sys;
+
                         //add data to the device
                         currdevices[i].AddData(data);
-                        for(int j = 0; j < currsize; j++)
+                        for (int j = 0; j < currsize; j++)
                         {
-                            Marshal.WriteByte(messages,j, 0);
+                            Marshal.WriteByte(messages, j, 0);
                         }
                     }
 

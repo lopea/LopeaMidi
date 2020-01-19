@@ -23,7 +23,7 @@ namespace Lopea.Midi
             if(portCount == 0)
             {
                 //print warning
-                Debug.LogWarning("No Midi Output Devices Found!");
+                Debug.LogError("MIDIOUT: No Midi Output Devices Found!");
 
                 //leave
                 return;
@@ -66,8 +66,19 @@ namespace Lopea.Midi
 
         public static void SendRaw(uint port, byte[] data)
         {
-            if(!_init)
+            if (!_init)
+            {
+                //setup values
                 Initialize();
+
+                //if initialization did not happen, print error message
+                if (!_init)
+                {
+                    //if something went wrong, print error
+                    Debug.LogError("Data to MIDI not sent!\n An error occured during the Initialization process!");
+                    return;
+                }
+            }
             //check if port is valid
             if(port < OutPorts.Length)
             {

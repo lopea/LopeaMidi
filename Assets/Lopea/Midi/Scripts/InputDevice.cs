@@ -15,16 +15,18 @@ namespace Lopea.Midi
 {
     public class InputDevice : MonoBehaviour
     {
-        byte[] message = {144, 11, 69};
+        
         void Start()
         {
-            MidiOutput.SendRaw(2, message);
+            
         }
         void Update()
         {
             
-        
-            
+            if(MidiInput.GetMidiNote(12))
+            {
+                print("cool");
+            }
         }
     }
 }

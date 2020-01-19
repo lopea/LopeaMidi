@@ -28,7 +28,7 @@ namespace Lopea.Midi.Internal
 #if (UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_LINUX_API)
         const string dllname = "RtLinux";
 #elif (UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_STANDALONE_WIN_API)
-    const string dllname = "RtWin.dll";
+    const string dllname = "RtWin";
 #endif
 
         /* RtMidi API functions */
