@@ -10,7 +10,9 @@ using System;
 using UnityEditor;
 using System.Runtime.InteropServices;
 using System.Linq;
-namespace Lopea.Midi.Internal
+using Lopea.Midi.Internal;
+
+namespace Lopea.Midi
 {
     [HideInInspector]
     public class MidiInput : MonoBehaviour
@@ -209,7 +211,6 @@ namespace Lopea.Midi.Internal
         {
             if (port < 0)
             {
-                if (port > GetPortCount())
                     for (int i = 0; i < currdevices.Length; i++)
                     {
                         if (currdevices[i].DataActive(data1, status))
@@ -387,6 +388,8 @@ namespace Lopea.Midi.Internal
         //On every frame, get current status of each midi device and store all its values.
         void Update()
         {
+            //Loop based on Keijiro Takahashi's implementation.
+            //https://github.com/keijiro/jp.keijiro.rtmidi/
             if (_initialized)
             {
 
@@ -401,6 +404,8 @@ namespace Lopea.Midi.Internal
                     //loop indefinitely
                     while (true)
                     {
+                        
+
 
                         //get message and store timestamp
                         double timestamp = MidiInternal.rtmidi_in_get_message(currdevices[i].ptr, messages, size);
@@ -423,9 +428,8 @@ namespace Lopea.Midi.Internal
 
                         //get status byte
                         byte status = Marshal.ReadByte(messages);
-
-
-
+                        string s = string.Empty;
+                        
                         //store data
                         data = new MidiData((float)timestamp,
                                             (MidiStatus)((status >> 4)),
@@ -440,8 +444,7 @@ namespace Lopea.Midi.Internal
                             data.status = (data.data2 != 0) ? MidiStatus.NoteOn : MidiStatus.NoteOff;
 
                         //send data if data is sysex message sysex
-                        if (data.status == MidiStatus.Sysex)
-                        {
+                        
                             //create array of bytes
                             byte[] sys = new byte[currsize];
 
@@ -450,12 +453,14 @@ namespace Lopea.Midi.Internal
                             {
                                 sys[j] = Marshal.ReadByte(messages, j);
                             }
-                            data.sysexMessage = sys;
-                        }
-
+                            data.rawData = sys;
+                        
                         //add data to the device
                         currdevices[i].AddData(data);
-
+                        for(int j = 0; j < currsize; j++)
+                        {
+                            Marshal.WriteByte(messages,j, 0);
+                        }
                     }
 
                 }

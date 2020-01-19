@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Lopea.Midi.Internal;
 using System.Runtime.InteropServices;
 using UnityEditor;
 using System.Threading;
@@ -16,13 +15,16 @@ namespace Lopea.Midi
 {
     public class InputDevice : MonoBehaviour
     {
+        byte[] message = {144, 11, 69};
         void Start()
         {
-            MidiInput.Initialize();
+            MidiOutput.SendRaw(2, message);
         }
         void Update()
         {
-            transform.position = Vector3.up * Mathf.Lerp(0, 2, MidiInput.GetCCData(77)/127.0f);
+            
+        
+            
         }
     }
 }

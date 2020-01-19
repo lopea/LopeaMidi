@@ -32,16 +32,16 @@ namespace Lopea.Midi
 
         public byte data2;
 
-        public byte[] sysexMessage;
+        public byte[] rawData;
 
-        public MidiData(float timeStamp, MidiStatus status, int channel, byte data1, byte data2, byte[] sysexMessage)
+        public MidiData(float timeStamp, MidiStatus status, int channel, byte data1, byte data2, byte[] rawData)
         {
             this.timeStamp = timeStamp;
             this.status = status;
             this.channel = channel;
             this.data1 = data1;
             this.data2 = data2;
-            this.sysexMessage = sysexMessage;
+            this.rawData = rawData;
         }
     }
 }
