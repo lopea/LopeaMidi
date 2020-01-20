@@ -402,8 +402,8 @@ namespace Lopea.Midi
             {
 
                 //allocate memory for messages
-                //IntPtr messages = Marshal.AllocHGlobal(1024);
-                //IntPtr size = Marshal.AllocHGlobal(4);
+                IntPtr messages = Marshal.AllocHGlobal(1024);
+                IntPtr size = Marshal.AllocHGlobal(4);
 
                 //loop for every device active 
                 for (int i = 0; i < currdevices.Length; i++)
@@ -413,33 +413,30 @@ namespace Lopea.Midi
                     //loop indefinitely
                     while (true)
                     {
-                        IntPtr messages = Marshal.AllocHGlobal(1024);
-                        IntPtr size = Marshal.AllocHGlobal(4);
-
-
+                        //write max size to for parameter
+                        Marshal.WriteInt32(size,1024);
+                       
                         //get message and store timestamp
                         double timestamp = MidiInternal.rtmidi_in_get_message(currdevices[i].ptr, messages, size);
 
                         //parse size 
-
                         currsize = Marshal.ReadInt32(size);
-
                         //if the message is empty, quit
                         if (currsize == 0)
                         {
                             break;
                         }
 
-                      
+                        //store messages in array
+                        byte[] m = new byte[currsize];
+                        Marshal.Copy(messages,m,0,currsize);
 
-                        byte[] sys = new byte[currsize];
+                        
+                        print(string.Format("{0} {1} {2}", m[0], m[1], m[2]));
 
-                        //send each data into bytes
-                        for (int j = 0; j < currsize; j++)
-                        {
-                            sys[j] = Marshal.ReadByte(messages, j);
-                        }
-                        print(string.Format("{0} {1} {2}", sys[0], sys[1], sys[2]));
+
+                        
+                       
                         //
                         //parse message
                         //
@@ -448,16 +445,15 @@ namespace Lopea.Midi
                         MidiData data;
 
                         //get status byte
-                        byte status = Marshal.ReadByte(messages);
-                        string s = string.Empty;
+                        byte status = m[0];
 
                         //store data
                         data = new MidiData((float)timestamp,
                                             (MidiStatus)((status >> 4)),
                                             (status & 0x0F),
-                                            Marshal.ReadByte(messages, 1),
-                                            (currsize == 2) ? byte.MinValue : Marshal.ReadByte(messages, 2),
-                                            null);
+                                            m[1],
+                                            (currsize == 2) ? byte.MinValue : m[2],
+                                            m);
 
                         //some devices for whatever reason have both note on and off to be the same value
                         //so note on/off status is based on velocity
@@ -468,19 +464,17 @@ namespace Lopea.Midi
 
                         //create array of bytes
                         
-                        data.rawData = sys;
+                       
 
                         //add data to the device
                         currdevices[i].AddData(data);
-                        Marshal.FreeHGlobal(size);
-                        Marshal.FreeHGlobal(messages);
                     }
 
                 }
 
                 //deallocate pointers
-               // Marshal.FreeHGlobal(size);
-                //Marshal.FreeHGlobal(messages);
+                Marshal.FreeHGlobal(size);
+                Marshal.FreeHGlobal(messages);
 
             }
 
