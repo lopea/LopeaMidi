@@ -402,24 +402,27 @@ namespace Lopea.Midi
             {
 
                 //allocate memory for messages
-                IntPtr messages = Marshal.AllocHGlobal(1024);
-                IntPtr size = Marshal.AllocHGlobal(4);
+                //IntPtr messages = Marshal.AllocHGlobal(1024);
+                //IntPtr size = Marshal.AllocHGlobal(4);
 
                 //loop for every device active 
                 for (int i = 0; i < currdevices.Length; i++)
                 {
+                    int currsize = 0;
 
                     //loop indefinitely
                     while (true)
                     {
-
+                        IntPtr messages = Marshal.AllocHGlobal(1024);
+                        IntPtr size = Marshal.AllocHGlobal(4);
 
 
                         //get message and store timestamp
                         double timestamp = MidiInternal.rtmidi_in_get_message(currdevices[i].ptr, messages, size);
 
                         //parse size 
-                        int currsize = Marshal.ReadInt32(size);
+
+                        currsize = Marshal.ReadInt32(size);
 
                         //if the message is empty, quit
                         if (currsize == 0)
@@ -427,6 +430,16 @@ namespace Lopea.Midi
                             break;
                         }
 
+                      
+
+                        byte[] sys = new byte[currsize];
+
+                        //send each data into bytes
+                        for (int j = 0; j < currsize; j++)
+                        {
+                            sys[j] = Marshal.ReadByte(messages, j);
+                        }
+                        print(string.Format("{0} {1} {2}", sys[0], sys[1], sys[2]));
                         //
                         //parse message
                         //
@@ -454,28 +467,20 @@ namespace Lopea.Midi
 
 
                         //create array of bytes
-                        byte[] sys = new byte[currsize];
-
-                        //send each data into bytes
-                        for (int j = 0; j < currsize; j++)
-                        {
-                            sys[j] = Marshal.ReadByte(messages, j);
-                        }
+                        
                         data.rawData = sys;
 
                         //add data to the device
                         currdevices[i].AddData(data);
-                        for (int j = 0; j < currsize; j++)
-                        {
-                            Marshal.WriteByte(messages, j, 0);
-                        }
+                        Marshal.FreeHGlobal(size);
+                        Marshal.FreeHGlobal(messages);
                     }
 
                 }
 
                 //deallocate pointers
-                Marshal.FreeHGlobal(size);
-                Marshal.FreeHGlobal(messages);
+               // Marshal.FreeHGlobal(size);
+                //Marshal.FreeHGlobal(messages);
 
             }
 
