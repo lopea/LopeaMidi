@@ -100,6 +100,10 @@ namespace Lopea.Midi
         //store monobehaviour object to use unity functions
         static MidiInput _update;
 
+        //store port count
+        static uint _port;
+
+        
         #endregion
 
         #region Public Static Constants
@@ -107,6 +111,26 @@ namespace Lopea.Midi
         //stores the biggest value a Midi device can send.
         public const int MaxMidiValue = 127;
 
+        #endregion
+
+        #region Public Static Variables
+
+        /// <summary>
+        /// get the amount of devices plugged in at a given time
+        /// </summary>
+        public static uint portCount
+        {
+            get
+            {
+                if (!_initialized)
+                    return GetPortCount();
+                return _port;
+            }
+            private set
+            {
+                _port = value;
+            }
+        }
         #endregion
 
         #region Private Static Methods
@@ -247,25 +271,31 @@ namespace Lopea.Midi
         /// </summary>
         public static void Initialize()
         {
-            //create the update object
+
+            //run only if the system has not been initialized
             if (!_initialized)
             {
                 //get port count 
-                uint port = GetPortCount();
+                portCount = GetPortCount();
                 //dont initialize if there are no midi devices available
-                if (port == 0)
+                if (portCount == 0)
                 {
-                    Debug.LogWarning("MIDIIN: No Midi Device Available! Lopea Midi is not Initializing.");
+                    Debug.LogError("MIDIIN: No Midi Device Available! Lopea Midi is not Initializing.");
                     return;
                 }
-                //create a gameobject with MidiInput Component
-                _update = new GameObject("LopeaMidi").AddComponent<MidiInput>();
 
+                //get the gameobject with MidiInput Component
+                _update = FindObjectOfType<MidiInput>();
+                
+                //if gameobject does not exist, make a new one.
+                if (_update == null)
+                {
+                    _update = new GameObject("LopeaMidi").AddComponent<MidiInput>();
+                }
                 //hide the game object from everything
                 _update.gameObject.hideFlags = HideFlags.HideInHierarchy;
                 //add all devices
-                uint count = GetPortCount();
-                for (uint i = 0; i < count; i++)
+                for (uint i = 0; i < portCount; i++)
                 {
                     addDevice(i);
                 }
@@ -303,14 +333,20 @@ namespace Lopea.Midi
         public static MidiData GetData(int data1, uint port)
         {
             if (!_initialized)
+            {
                 Initialize();
+                if (!_initialized)
+                {
+                    return null;
+                }
+            }
 
             //if device does not exist...
-            if (port >= GetPortCount())
+            if (port >= portCount)
             {
                 //print message
                 Debug.LogError(string.Format("Port Number {0} cannot be used for Midi Input!\nPort range 0-{1}", port,
-                                                                                   GetPortCount() - 1));
+                                                                                   portCount - 1));
                 //send nothing
                 return null;
             }
@@ -334,7 +370,7 @@ namespace Lopea.Midi
         /// <param name="data1">Controller number</param>
         /// <param name="port">Optional: device port </param>
         /// <returns>CC value</returns>
-        public static int GetCCData(int data1, int port = -1)
+        public static int GetCCNumber(int data1, int port = -1)
         {
             return GetMidi(data1, port, MidiStatus.ControlChange);
         }
@@ -348,7 +384,7 @@ namespace Lopea.Midi
         /// <param name="data1">Midi Note Value</param>
         /// <param name="port">Optional: Device port</param>
         /// <returns>Velocity/Velocity Aftertouch</returns>
-        public static int GetNoteData(int data1, int port = -1)
+        public static int GetNoteNumber(int data1, int port = -1)
         {
             return GetMidi(data1, port, MidiStatus.NoteOn);
         }
@@ -362,9 +398,9 @@ namespace Lopea.Midi
         /// <param name="data1">Number representing CC midi value</param>
         /// <param name="port">Optional: device port to search CC midi value</param>
         /// <returns>true if note value at data1 is not zero, false if zero</returns>
-        public static bool GetMidiNote(int data1, int port = -1)
+        public static bool GetNotePressed(int data1, int port = -1)
         {
-            return GetNoteData(data1, port) != 0;
+            return GetNoteNumber(data1, port) != 0;
         }
 
 
@@ -376,9 +412,9 @@ namespace Lopea.Midi
         /// <param name="data1">Number representing CC midi value</param>
         /// <param name="port">Optional: device port to search CC midi value</param>
         /// <returns>true if CC value at data1 is not zero, false if zero</returns>
-        public static bool GetMidiCC(int data1, int port = -1)
+        public static bool GetCCActive(int data1, int port = -1)
         {
-            return GetCCData(data1, port) != 0;
+            return GetCCNumber(data1, port) != 0;
         }
 
 
@@ -400,7 +436,19 @@ namespace Lopea.Midi
             //https://github.com/keijiro/jp.keijiro.rtmidi/
             if (_initialized)
             {
+                if(portCount != GetPortCount())
+                {
+                    //shutdown the system
+                    Shutdown();
 
+                    //reinitialize system
+                    Initialize();
+
+                   
+                    //if there are no devices available, quit
+                    if (!_initialized)
+                        return;    
+                }
                 //allocate memory for messages
                 IntPtr messages = Marshal.AllocHGlobal(1024);
                 IntPtr size = Marshal.AllocHGlobal(4);
@@ -429,13 +477,7 @@ namespace Lopea.Midi
 
                         //store messages in array
                         byte[] m = new byte[currsize];
-                        Marshal.Copy(messages,m,0,currsize);
-
-                        
-                        print(string.Format("{0} {1} {2}", m[0], m[1], m[2]));
-
-
-                        
+                        Marshal.Copy(messages,m,0,currsize);                       
                        
                         //
                         //parse message
@@ -448,12 +490,12 @@ namespace Lopea.Midi
                         byte status = m[0];
 
                         //store data
-                        data = new MidiData((float)timestamp,
-                                            (MidiStatus)((status >> 4)),
-                                            (status & 0x0F),
-                                            m[1],
-                                            (currsize == 2) ? byte.MinValue : m[2],
-                                            m);
+                        data = new MidiData((float)timestamp,                       //time since last midi message
+                                            (MidiStatus)((status >> 4)),            //midi type (8-15 defined)
+                                            (status & 0x0F),                        //channel bit (0-15)
+                                            m[1],                                   //data1 byte (stores midi note ID usually)
+                                            (currsize == 2) ? byte.MinValue : m[2], //data2 byte (sometimes this is 0 due to the length of the message)
+                                            m);                                     //raw data of the message
 
                         //some devices for whatever reason have both note on and off to be the same value
                         //so note on/off status is based on velocity

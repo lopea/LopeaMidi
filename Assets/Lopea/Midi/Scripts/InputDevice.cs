@@ -23,7 +23,7 @@ namespace Lopea.Midi
         void Update()
         {
             
-            if(MidiInput.GetMidiNote(12))
+            if(MidiInput.GetNotePressed(12))
             {
                 print("cool");
             }
