@@ -18,15 +18,15 @@ namespace Lopea.Midi
         
         void Start()
         {
-            
+            for(uint i = 0; i < MidiInput.portCount; i++)
+            {
+                print(MidiInput.GetPortName(i));
+            }
         }
         void Update()
         {
-            
             if(MidiInput.GetNotePressed(12))
-            {
-                print("cool");
-            }
+                print("Cool");
         }
     }
 }

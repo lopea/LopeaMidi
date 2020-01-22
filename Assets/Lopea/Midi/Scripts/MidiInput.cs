@@ -103,7 +103,7 @@ namespace Lopea.Midi
         //store port count
         static uint _port;
 
-        
+
         #endregion
 
         #region Public Static Constants
@@ -262,6 +262,13 @@ namespace Lopea.Midi
         #endregion
 
         #region Public Static Functions
+        //TODO: add function to find port based on name
+
+        //TODO: add function to get last SysEx message recived
+        
+        //TODO: add function to get last Program change message 
+        
+        //TODO: add function to get last Channel AfterTouch
 
 
         /// <summary>
@@ -286,7 +293,7 @@ namespace Lopea.Midi
 
                 //get the gameobject with MidiInput Component
                 _update = FindObjectOfType<MidiInput>();
-                
+
                 //if gameobject does not exist, make a new one.
                 if (_update == null)
                 {
@@ -375,7 +382,6 @@ namespace Lopea.Midi
             return GetMidi(data1, port, MidiStatus.ControlChange);
         }
 
-
         /// <summary>
         /// Get note velocity / velocity aftertouch.
         /// Returns note velocity from midi note value given.
@@ -417,6 +423,38 @@ namespace Lopea.Midi
             return GetCCNumber(data1, port) != 0;
         }
 
+        /// <summary>
+        /// Gets the name of the port based on the port number given.
+        /// </summary>
+        /// <param name="port">port number to find name of.</param>
+        /// <returns></returns>
+        public static string GetPortName(uint port)
+        {
+            //check if the value exists...
+            if (port >= portCount)
+            {
+                //if not, print error and return nothing.
+                Debug.LogError("MIDI port given does not exist when trying to find port name!");
+                return string.Empty;
+            }
+            //if the system has not been initialized...
+            if (!_initialized)
+            {
+
+                //create a reference to the port
+                IntPtr refPort = MidiInternal.rtmidi_in_create_default();
+                
+                //get name
+                string name = MidiInternal.rtmidi_get_port_name(refPort, port);
+
+                //free port
+                freeHandle(refPort);
+                return name;
+            }
+            //system has already been initialized, get port name from device
+            return currdevices[port].name;
+
+        }
 
 
 
@@ -436,7 +474,7 @@ namespace Lopea.Midi
             //https://github.com/keijiro/jp.keijiro.rtmidi/
             if (_initialized)
             {
-                if(portCount != GetPortCount())
+                if (portCount != GetPortCount())
                 {
                     //shutdown the system
                     Shutdown();
@@ -444,10 +482,10 @@ namespace Lopea.Midi
                     //reinitialize system
                     Initialize();
 
-                   
+
                     //if there are no devices available, quit
                     if (!_initialized)
-                        return;    
+                        return;
                 }
                 //allocate memory for messages
                 IntPtr messages = Marshal.AllocHGlobal(1024);
@@ -461,9 +499,9 @@ namespace Lopea.Midi
                     //loop indefinitely
                     while (true)
                     {
-                        //write max size to for parameter
-                        Marshal.WriteInt32(size,1024);
-                       
+                        //write max size for parameter
+                        Marshal.WriteInt32(size, 1024);
+
                         //get message and store timestamp
                         double timestamp = MidiInternal.rtmidi_in_get_message(currdevices[i].ptr, messages, size);
 
@@ -477,8 +515,8 @@ namespace Lopea.Midi
 
                         //store messages in array
                         byte[] m = new byte[currsize];
-                        Marshal.Copy(messages,m,0,currsize);                       
-                       
+                        Marshal.Copy(messages, m, 0, currsize);
+
                         //
                         //parse message
                         //
@@ -505,8 +543,8 @@ namespace Lopea.Midi
 
 
                         //create array of bytes
-                        
-                       
+
+
 
                         //add data to the device
                         currdevices[i].AddData(data);
