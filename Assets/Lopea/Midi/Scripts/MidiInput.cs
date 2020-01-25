@@ -262,8 +262,22 @@ namespace Lopea.Midi
         #endregion
 
         #region Public Static Functions
-        //TODO: add function to find port based on name
-
+       
+        public static int FindPort(string name)
+        {
+            //no need to run if not initialized
+            if (!_initialized)
+                return -1;
+            for(int i = 0; i < portCount; i ++)
+            {
+                if(currdevices[i].name.Contains(name))
+                    return i;
+            }
+            //no devices with name found, send warning and give zero
+            Debug.LogWarning(string.Format("No device port containing name {0}. Will default to an all port search.", name));
+            return -1;
+            
+        }
         //TODO: add function to get last SysEx message recived
         
         //TODO: add function to get last Program change message 

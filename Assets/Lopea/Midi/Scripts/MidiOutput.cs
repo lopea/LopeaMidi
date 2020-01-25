@@ -64,7 +64,7 @@ namespace Lopea.Midi
             _init = false;
         }
 
-        public static void SendRaw(uint port, byte[] data)
+        public static void SendRawData(uint port, byte[] data)
         {
             if (!_init)
             {
@@ -98,7 +98,7 @@ namespace Lopea.Midi
             if(data.status == MidiStatus.Dummy)
                 return;
 
-            SendRaw(port, data.rawData);
+            SendRawData(port, data.rawData);
         }
 
         void OnDisable()

@@ -25,7 +25,8 @@ namespace Lopea.Midi
         }
         void Update()
         {
-            if(MidiInput.GetNotePressed(12))
+            int port = MidiInput.FindPort("Launchpad MIDI 2");
+            if(MidiInput.GetNotePressed(12,port))
                 print("Cool");
         }
     }
