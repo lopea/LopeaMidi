@@ -74,7 +74,6 @@ namespace Lopea.Midi.Devices
             AddSysex(ref result, 247);
         }
 
-        //TODO: Finish function
         public static int getPort(LaunchpadProState state)
         {
             return MidiInput.FindPort("Launchpad Pro:Launchpad Pro MIDI " + (int)state);  

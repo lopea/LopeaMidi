@@ -48,6 +48,16 @@ namespace Lopea.Midi
                 //values after CC messages do not follow a unique value on data 1
                 return (int)status > 11;
             }
+
+            public MidiData getLastSpecial(MidiStatus status)
+            {
+                //check if the status given is special
+                if (isSpecial(status) && activedata.ContainsKey(11 - (int)status))
+                {
+                    return activedata[11 - (int)status];
+                }
+                return CreateMidiDummy(0);
+            }
             public void AddData(MidiData data)
             {
                 //handle any special values
@@ -86,6 +96,7 @@ namespace Lopea.Midi
                     && activedata[data1].status == status
                     && activedata[data1].data2 != 0;
             }
+
         }
         #endregion
 
@@ -233,18 +244,22 @@ namespace Lopea.Midi
         //get data2 from midi
         static int GetMidi(int data1, int port = -1, MidiStatus status = MidiStatus.Dummy)
         {
+            //initialize if necessary
             if (!_initialized)
             {
                 Initialize();
+
+                //quit if initialization was not done successfully
                 if (!_initialized)
-                {
                     return 0;
-                }
             }
+            // check if no port was given
             if (port < 0)
             {
+                //check every port 
                 for (int i = 0; i < currdevices.Length; i++)
                 {
+                    //if the note is active 
                     if (currdevices[i].DataActive(data1, status))
                     {
                         return currdevices[i].getData(data1).data2;
@@ -252,38 +267,109 @@ namespace Lopea.Midi
                 }
                 return 0;
             }
-            else if (currdevices[port].DataActive(data1, status))
+            // if port was specified, find and get data from port given.
+            else if (port < portCount && currdevices[port].DataActive(data1, status))
             {
                 return currdevices[port].getData(data1).data2;
             }
             return 0;
         }
 
+
+
+        static void RestartDevices()
+        {
+            if (!_initialized)
+                return;
+            var newPortCount = GetPortCount();
+
+            //find the device removed/added 
+            for (uint i = 0; i < newPortCount; i++)
+            {
+                string name = MidiInternal.rtmidi_get_port_name(currdevices[0].ptr, i);
+                for (int j = 0; j < currdevices.Length; j++)
+                {
+                    if (currdevices[j].name == name)
+                        continue;
+                    //once found, print message
+                    else if (currdevices[j].name != name && j == currdevices.Length - 1)
+                    {
+                        if (portCount < newPortCount)
+                            print("Midi Device Added: " + name);
+                        else
+                            print("Midi Device Removed: " + currdevices[j].name);
+                    }
+                }
+
+            }
+            //shutdown the system
+            Shutdown();
+
+            //reinitialize system
+            Initialize();
+        }
+
         #endregion
 
         #region Public Static Functions
-       
+
         public static int FindPort(string name)
         {
-            //no need to run if not initialized
+            //initialize if necessary
             if (!_initialized)
-                return -1;
-            for(int i = 0; i < portCount; i ++)
             {
-                if(currdevices[i].name.Contains(name))
+                Initialize();
+
+                //return if the initialization process was incomplete
+                if (!_initialized)
+                    return -1;
+            }
+            for (int i = 0; i < portCount; i++)
+            {
+                if (currdevices[i].name.Contains(name))
                     return i;
             }
             //no devices with name found, send warning and give zero
             Debug.LogWarning(string.Format("No device port containing name {0}. Will default to an all port search.", name));
             return -1;
-            
-        }
-        //TODO: add function to get last SysEx message recived
-        
-        //TODO: add function to get last Program change message 
-        
-        //TODO: add function to get last Channel AfterTouch
 
+        }
+
+        //
+        //There are certain Midi messages that do not follow the data1 = id, data2 = value format. 
+        //In this script they are conidered "Special". 
+        //the following functions get the last value that was given of this type.
+        //
+
+        public static byte[] GetLastSysex(uint port)
+        {
+            if (port >= portCount)
+                return new byte[0];
+
+            return currdevices[port].getLastSpecial(MidiStatus.Sysex).rawData;
+        }
+
+        //TODO: add function to get last Program change message 
+        public static byte GetLastProgramChange(uint port)
+        {
+            if (port >= portCount)
+                return 0;
+
+            return currdevices[port].getLastSpecial(MidiStatus.ProgramChange).data1;
+        }
+
+        /// <summary>
+        /// gives the last Channel aftertouch value that was sent from device with port given.
+        /// </summary>
+        /// <param name="port">device port</param>
+        /// <returns>Aftertouch value </returns>
+        public static byte GetLastChannelAfterTouch(uint port)
+        {
+            if (port >= portCount)
+                return 0;
+
+            return currdevices[port].getLastSpecial(MidiStatus.PolyChannel).data1;
+        }
 
         /// <summary>
         /// Initializes MidiInput and connects all Midi Devices.
@@ -343,7 +429,6 @@ namespace Lopea.Midi
             return count;
         }
 
-
         /// <summary>
         /// Get available data from the MIDI note number.
         /// An expensive process, avoid using during update.
@@ -391,7 +476,7 @@ namespace Lopea.Midi
         /// <param name="data1">Controller number</param>
         /// <param name="port">Optional: device port </param>
         /// <returns>CC value</returns>
-        public static int GetCCNumber(int data1, int port = -1)
+        public static int GetCCValue(int data1, int port = -1)
         {
             return GetMidi(data1, port, MidiStatus.ControlChange);
         }
@@ -404,9 +489,13 @@ namespace Lopea.Midi
         /// <param name="data1">Midi Note Value</param>
         /// <param name="port">Optional: Device port</param>
         /// <returns>Velocity/Velocity Aftertouch</returns>
-        public static int GetNoteNumber(int data1, int port = -1)
+        public static int GetNoteValue(int data1, int port = -1)
         {
-            return GetMidi(data1, port, MidiStatus.NoteOn);
+            var aftertouch = GetMidi(data1, port, MidiStatus.PolyKey);
+            if (aftertouch != 0)
+                return aftertouch;
+            else
+                return GetMidi(data1, port, MidiStatus.NoteOn);
         }
 
 
@@ -418,9 +507,9 @@ namespace Lopea.Midi
         /// <param name="data1">Number representing CC midi value</param>
         /// <param name="port">Optional: device port to search CC midi value</param>
         /// <returns>true if note value at data1 is not zero, false if zero</returns>
-        public static bool GetNotePressed(int data1, int port = -1)
+        public static bool GetNote(int data1, int port = -1)
         {
-            return GetNoteNumber(data1, port) != 0;
+            return GetNoteValue(data1, port) != 0;
         }
 
 
@@ -432,15 +521,15 @@ namespace Lopea.Midi
         /// <param name="data1">Number representing CC midi value</param>
         /// <param name="port">Optional: device port to search CC midi value</param>
         /// <returns>true if CC value at data1 is not zero, false if zero</returns>
-        public static bool GetCCActive(int data1, int port = -1)
+        public static bool GetCC(int data1, int port = -1)
         {
-            return GetCCNumber(data1, port) != 0;
+            return GetCCValue(data1, port) != 0;
         }
 
         /// <summary>
         /// Gets the name of the port based on the port number given.
         /// </summary>
-        /// <param name="port">port number to find name of.</param>
+        /// <param name="port">port number to find the name of.</param>
         /// <returns></returns>
         public static string GetPortName(uint port)
         {
@@ -457,7 +546,7 @@ namespace Lopea.Midi
 
                 //create a reference to the port
                 IntPtr refPort = MidiInternal.rtmidi_in_create_default();
-                
+
                 //get name
                 string name = MidiInternal.rtmidi_get_port_name(refPort, port);
 
@@ -469,6 +558,7 @@ namespace Lopea.Midi
             return currdevices[port].name;
 
         }
+
 
 
 
@@ -488,14 +578,11 @@ namespace Lopea.Midi
             //https://github.com/keijiro/jp.keijiro.rtmidi/
             if (_initialized)
             {
+                //check if a device has been added/removed.
                 if (portCount != GetPortCount())
                 {
-                    //shutdown the system
-                    Shutdown();
 
-                    //reinitialize system
-                    Initialize();
-
+                    RestartDevices();
 
                     //if there are no devices available, quit
                     if (!_initialized)
