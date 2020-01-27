@@ -39,7 +39,7 @@ There are helper functions for multiple devices. These devices are:
   -Launchpad Pro
 
 ---
-#TODO:
+# TODO:
   
   -Finish Launchpad pro helper functions
   
