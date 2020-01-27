@@ -35,10 +35,14 @@ bool MidiInput.GetCC(int ccID, int port);
 ---
 ## Device Specific Features
 There are helper functions for multiple devices. These devices are:
--Launchpad Pro
+
+  -Launchpad Pro
 
 ---
-TODO:
+#TODO:
+  
   -Finish Launchpad pro helper functions
+  
   -Add Launch Control XL 
+  
   -Integrate with SuperControls
