@@ -10,23 +10,28 @@ using UnityEngine;
 using System.Runtime.InteropServices;
 using UnityEditor;
 using System.Threading;
+using Lopea.Midi;
+using Lopea.Midi.Devices;
 
-namespace Lopea.Midi
+
+public class InputDevice : MonoBehaviour
 {
-    public class InputDevice : MonoBehaviour
+    int port = 0;
+    Color color = Color.cyan;
+    [SerializeField]Gradient gradient;
+    void Start()
     {
+        for (uint i = 0; i < MidiInput.portCount; i++)
+        {
+            print(MidiInput.GetPortName(i));
+        }
+        port = LaunchpadPro.getPort(LaunchpadProState.Standalone);
         
-        void Start()
-        {
-            for(uint i = 0; i < MidiInput.portCount; i++)
-            {
-                print(MidiInput.GetPortName(i));
-            }
-        }
-        void Update()
-        {
-            int port = MidiInput.FindPort("Launchpad Pro MIDI 2");
-            print(MidiInput.GetNoteValue(12, port));
-        }
+
+    }
+    void Update()
+    {
+        LaunchpadPro.SetAllLEDs((uint)port, color);
+        color = gradient.Evaluate(0.5f - Mathf.Cos(Time.time * 30) * 0.5f);
     }
 }

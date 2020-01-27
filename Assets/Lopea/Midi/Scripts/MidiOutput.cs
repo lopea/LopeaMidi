@@ -87,7 +87,7 @@ namespace Lopea.Midi
             }
             else
             {
-                Debug.LogError("Device port is invalid for output!");
+                Debug.LogError("Device port #" + port + " is invalid for output!");
             }
         }
 
@@ -100,6 +100,15 @@ namespace Lopea.Midi
 
             SendRawData(port, data.rawData);
         }
+
+        public static void SendSimpleData(uint port, MidiStatus status, byte data1, byte data2, byte channel = 0)
+        {
+
+            byte[] data = { (byte)(((int)status << 4) | (channel & 0xF)), data1, data2};
+
+            SendRawData(port, data);
+        }
+
 
         void OnDisable()
         {
