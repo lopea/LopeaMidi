@@ -27,11 +27,15 @@ public class InputDevice : MonoBehaviour
         }
         port = LaunchpadPro.getPort(LaunchpadProState.Standalone);
         
-
+        LaunchpadPro.SendText((uint)port,"I DOnt Know@uwu", 35);
     }
     void Update()
     {
-        LaunchpadPro.SetAllLEDs((uint)port, color);
+        
         color = gradient.Evaluate(0.5f - Mathf.Cos(Time.time * 30) * 0.5f);
+    }
+    void OnDisable()
+    {
+        
     }
 }
