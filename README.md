@@ -1,13 +1,16 @@
 # LopeaMidi
-A cross platform MIDI wrapper for Unity3D using RtMidi with functionality for device specific features.
+A cross platform [MIDI](https://wikipedia.org/wiki/MIDI) wrapper for Unity3D using [RtMidi](https://www.music.mcgill.ca/~gary/rtmidi/) with functionality for device specific features.
 
-## Requirements
+## Supported Operating Systems
   - Linux with ALSA
   - Windows
   (Mac OS not tested yet and will not work for now.)
 
 ## How To Use
 NOTE: There is no need to add a GameObject or anything, just use these functions in your script and you are good to go.
+```csharp
+using Lopea.Midi;
+```
 ### Note/Control Change (CC) input
 To get the value of a note/CC value, use
  ```csharp
@@ -32,9 +35,12 @@ int MidiInput.GetNoteValue(int ccID, int port);
 bool MidiInput.GetNote(int noteID, int port);
 bool MidiInput.GetCC(int ccID, int port);
 ```
+### Midi Output
 ---
 ## Device Specific Features
-There are helper functions for multiple devices. These devices are:
+There are specific functions to help with certain devices and their features.
+
+Supported Devices:
 
   -Launchpad Pro
 
