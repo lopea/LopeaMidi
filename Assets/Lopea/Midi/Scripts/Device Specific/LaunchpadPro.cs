@@ -275,6 +275,7 @@ namespace Lopea.Midi.Devices
 
             MidiOutput.SendRawData(port, result);
         }
+
     }
 }
 
