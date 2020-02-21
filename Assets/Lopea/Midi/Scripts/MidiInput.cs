@@ -279,10 +279,11 @@ namespace Lopea.Midi
 
         static void RestartDevices()
         {
+            //cannot restart device if it hasn't started in the first place,
             if (!_initialized)
                 return;
-            var newPortCount = GetPortCount();
 
+            var newPortCount = GetPortCount();
             //find the device removed/added 
             for (uint i = 0; i < newPortCount; i++)
             {
@@ -349,7 +350,6 @@ namespace Lopea.Midi
             return currdevices[port].getLastSpecial(MidiStatus.Sysex).rawData;
         }
 
-        //TODO: add function to get last Program change message 
         public static byte GetLastProgramChange(uint port)
         {
             if (port >= portCount)
@@ -410,7 +410,6 @@ namespace Lopea.Midi
             }
         }
 
-
         /// <summary>
         /// Get the number of midi devices available
         /// </summary>
@@ -438,13 +437,14 @@ namespace Lopea.Midi
         /// <returns>MidiData struct with data from MIDI controller Number</returns>
         public static MidiData GetData(int data1, uint port)
         {
+            //if value is not initialized, 
             if (!_initialized)
             {
+                //start initialization process
                 Initialize();
+                //leave if something happened during the initialization process
                 if (!_initialized)
-                {
                     return null;
-                }
             }
 
             //if device does not exist...
@@ -459,14 +459,12 @@ namespace Lopea.Midi
 
             //get data from device
             var data = currdevices[port].getData(data1);
-
             //check if value does not exist to create dummy
             if (data == null)
                 data = CreateMidiDummy(data1, MidiStatus.NoteOff);
 
             return data;
         }
-
 
         /// <summary>
         /// Get value from CC note.
@@ -543,13 +541,10 @@ namespace Lopea.Midi
             //if the system has not been initialized...
             if (!_initialized)
             {
-
                 //create a reference to the port
                 IntPtr refPort = MidiInternal.rtmidi_in_create_default();
-
                 //get name
                 string name = MidiInternal.rtmidi_get_port_name(refPort, port);
-
                 //free port
                 freeHandle(refPort);
                 return name;
@@ -558,10 +553,6 @@ namespace Lopea.Midi
             return currdevices[port].name;
 
         }
-
-
-
-
         #endregion
 
         #region MonoBehaviour Functions
@@ -600,7 +591,7 @@ namespace Lopea.Midi
                     //loop indefinitely
                     while (true)
                     {
-                        //write max size for parameter
+                        //write max size for parameter (max size for a midi message is 1024)
                         Marshal.WriteInt32(size, 1024);
 
                         //get message and store timestamp
@@ -608,11 +599,10 @@ namespace Lopea.Midi
 
                         //parse size 
                         currsize = Marshal.ReadInt32(size);
+
                         //if the message is empty, quit
                         if (currsize == 0)
-                        {
                             break;
-                        }
 
                         //store messages in array
                         byte[] m = new byte[currsize];
@@ -640,12 +630,6 @@ namespace Lopea.Midi
                         //so note on/off status is based on velocity
                         if (data.status == MidiStatus.NoteOn || data.status == MidiStatus.NoteOff)
                             data.status = (data.data2 != 0) ? MidiStatus.NoteOn : MidiStatus.NoteOff;
-
-
-
-                        //create array of bytes
-
-
 
                         //add data to the device
                         currdevices[i].AddData(data);
