@@ -16,26 +16,31 @@ using Lopea.Midi.Devices;
 
 public class InputDevice : MonoBehaviour
 {
-    int port = 0;
+    uint port = 0;
     Color color = Color.cyan;
     [SerializeField]Gradient gradient;
     void Start()
     {
+        for (uint i = 0; i < MidiOutput.portCount ; i++)
+        {
+            print(MidiOutput.GetPortName(i));
+        }
         for (uint i = 0; i < MidiInput.portCount; i++)
         {
             print(MidiInput.GetPortName(i));
         }
-        port = LaunchpadPro.getPort(LaunchpadProState.Standalone);
+        port = LaunchpadPro.GetOutputPort(LaunchpadProState.Standalone);
         
-        LaunchpadPro.SendText((uint)port,"I DOnt Know@uwu", 35);
+
     }
     void Update()
     {
         
-        color = gradient.Evaluate(0.5f - Mathf.Cos(Time.time * 30) * 0.5f);
+        color = gradient.Evaluate(0.5f - Mathf.Cos(Time.time ) * 0.5f);
+        LaunchpadPro.SetAllLEDs(port, color);
     }
     void OnDisable()
     {
-        
+        LaunchpadPro.ClearAllLEDs(port);
     }
 }

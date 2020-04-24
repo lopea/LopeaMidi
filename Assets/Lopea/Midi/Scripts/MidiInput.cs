@@ -10,6 +10,7 @@ using System;
 using UnityEditor;
 using System.Runtime.InteropServices;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using Lopea.Midi.Internal;
 
 namespace Lopea.Midi
@@ -120,7 +121,10 @@ namespace Lopea.Midi
         #region Public Static Constants
 
         //stores the biggest value a Midi device can send.
-        public const int MaxMidiValue = 127;
+        public const uint MaxMidiValue = 127;
+
+        //stores the Error handler for invalid/unknown input device ports
+        public const uint MIDIINERROR = UInt32.MaxValue;
 
         #endregion
 
@@ -314,7 +318,14 @@ namespace Lopea.Midi
 
         #region Public Static Functions
 
-        public static int FindPort(string name)
+        /// <summary>
+        /// Find a device port based on the device name. <br></br>
+        /// The name may be a portion of the actual device name. <br></br>
+        /// This function can also handle multiple strings to narrow your search.
+        /// </summary>
+        /// <param name="name"> string that is contained in the desired device name.</param>
+        /// <returns>port number referencing desired input device, MIDIINERROR if no device contained the name given.</returns>
+        public static uint FindPortByName(params string[] name)
         {
             //initialize if necessary
             if (!_initialized)
@@ -323,16 +334,30 @@ namespace Lopea.Midi
 
                 //return if the initialization process was incomplete
                 if (!_initialized)
-                    return -1;
+                    return MIDIINERROR;
             }
-            for (int i = 0; i < portCount; i++)
+            for (uint i = 0; i < portCount; i++)
             {
-                if (currdevices[i].name.Contains(name))
+                bool check = false;
+                for (int j = 0; j < name.Length; j++)
+                {
+                    if (!currdevices[i].name.Contains(name[j]))
+                        check = true;
+                }
+
+                if (!check)
                     return i;
             }
+
+            //setup error msg
+            string errMsg = "";
+            for (uint i = 0; i < name.Length; i++)
+            {
+                errMsg += name[i] + " ";
+            }
             //no devices with name found, send warning and give zero
-            Debug.LogWarning(string.Format("No device port containing name {0}. Will default to an all port search.", name));
-            return -1;
+            Debug.LogWarning(string.Format("No device port containing names: {0}.", errMsg));
+            return MIDIINERROR;
 
         }
 
@@ -572,7 +597,6 @@ namespace Lopea.Midi
                 //check if a device has been added/removed.
                 if (portCount != GetPortCount())
                 {
-
                     RestartDevices();
 
                     //if there are no devices available, quit
@@ -591,7 +615,7 @@ namespace Lopea.Midi
                     //loop indefinitely
                     while (true)
                     {
-                        //write max size for parameter (max size for a midi message is 1024)
+                        //write max size for parameter (max size for a midi message is 1024 bytes)
                         Marshal.WriteInt32(size, 1024);
 
                         //get message and store timestamp
@@ -619,12 +643,12 @@ namespace Lopea.Midi
                         byte status = m[0];
 
                         //store data
-                        data = new MidiData((float)timestamp,                       //time since last midi message
-                                            (MidiStatus)((status >> 4)),            //midi type (8-15 defined)
-                                            (status & 0x0F),                        //channel bit (0-15)
+                        data = new MidiData((float)timestamp,                            //time since last midi message
+                                            (MidiStatus)((status >> 4)),                 //midi type (8-15 defined)
+                                            (status & 0x0F),                       //channel bit (0-15)
                                             m[1],                                   //data1 byte (stores midi note ID usually)
                                             (currsize == 2) ? byte.MinValue : m[2], //data2 byte (sometimes this is 0 due to the length of the message)
-                                            m);                                     //raw data of the message
+                                            m);                                          //raw data of the message
 
                         //some devices for whatever reason have both note on and off to be the same value
                         //so note on/off status is based on velocity
