@@ -8,13 +8,18 @@ using Lopea.Midi.Internal;
 
 namespace Lopea.Midi
 {
-    
+    public delegate void MidiOutFunc();
     public class MidiOutput : MonoBehaviour
     {
         static IntPtr[] OutPorts;
         static bool _init;
         static GameObject _handler;
         static uint count = 0;
+
+        /// <summary>
+        /// Event that gets called when the 
+        /// </summary>
+        public static event MidiOutFunc OnShutdown;
 
         public static uint portCount
         {
@@ -88,6 +93,7 @@ namespace Lopea.Midi
                 OutPorts[i] = MidiInternal.rtmidi_out_create_default();
                 MidiInternal.rtmidi_open_port(OutPorts[i], i, "LopeaMidi: Out " + i);    
             }
+
             _handler = new GameObject("Midi Output");
             _handler.hideFlags = HideFlags.HideInHierarchy;
             _handler.AddComponent<MidiOutput>();
@@ -99,8 +105,12 @@ namespace Lopea.Midi
             //check if the device was already shutdown
             if(!_init)
                 return;
-            
-            //free all handles...
+
+            //call the OnShutdown Method
+            OnShutdown?.Invoke();
+            OnShutdown = null;
+
+                //free all handles...
             for(int i = 0; i < OutPorts.Length; i ++)
             {
                 MidiInternal.rtmidi_out_free(OutPorts[i]);
@@ -108,9 +118,11 @@ namespace Lopea.Midi
             }
             
             
+            
             //erase everything
             OutPorts = null;
             _handler = null;
+
             //set init flag to false
             _init = false;
         }
@@ -130,8 +142,6 @@ namespace Lopea.Midi
                     return;
                 }
             }
-            
-
 
             //check if port is valid
             if(port < OutPorts.Length)
@@ -258,7 +268,31 @@ namespace Lopea.Midi
 
         void Update()
         {
+            uint current = GetCurrentPortCount();
+            if ( current != portCount)
+            {
+                if (current == 0)
+                {
+                    Shutdown();
+                }
+                else
+                {
+                    for(int i = 0; i < OutPorts.Length; i ++)
+                    {
+                        MidiInternal.rtmidi_out_free(OutPorts[i]);
+                        OutPorts[i] = IntPtr.Zero;
+                    }
 
+                    count = current;
+                    OutPorts = new IntPtr[portCount];
+
+                    for(uint i = 0; i < portCount; i ++)
+                    {
+                        OutPorts[i] = MidiInternal.rtmidi_out_create_default();
+                        MidiInternal.rtmidi_open_port(OutPorts[i], i, "LopeaMidi: Out " + i);    
+                    }
+                }
+            }
         }
     }
 

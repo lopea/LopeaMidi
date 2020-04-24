@@ -12,9 +12,13 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Lopea.Midi.Internal;
+using UnityEngine.PlayerLoop;
 
 namespace Lopea.Midi
 {
+    public delegate void MidiInFunc();
+
+    public delegate void MidiInNoteFunc(MidiData context);
     [HideInInspector]
     public class MidiInput : MonoBehaviour
     {
@@ -130,6 +134,18 @@ namespace Lopea.Midi
 
         #region Public Static Variables
 
+
+
+        /// <summary>
+        /// Gets invoked when the input system gets shutdown
+        /// </summary>
+        public static event MidiInFunc OnShutdown;
+
+        /// <summary>
+        /// Gets invoked whenever a midi device has been received from any device
+        /// </summary>
+        public static event MidiInFunc OnMidiReceived;
+
         /// <summary>
         /// get the amount of devices plugged in at a given time
         /// </summary>
@@ -151,7 +167,6 @@ namespace Lopea.Midi
         #region Private Static Methods
 
 
-
         //frees RtMidiDevice
         static void freeHandle(IntPtr device)
         {
@@ -163,27 +178,10 @@ namespace Lopea.Midi
         }
 
         //add device 
-        static void addDevice(uint port)
+        static MidiInDevice CreateDevice(uint port)
         {
             //create reference to RtMidi device
             IntPtr reference = MidiInternal.rtmidi_in_create_default();
-
-            //get port count 
-            //not using GetPortCount to avoid creating another RtMididevice
-            uint count = MidiInternal.rtmidi_get_port_count(reference);
-
-            //check if port number is invalid
-            if (port >= count)
-            {
-                //send error
-                Debug.LogError(string.Format("Port Number {0} cannot be used for Midi Input!\nPort range 0-{1}", port,
-                                                                                    count - 1));
-                //free reference
-                freeHandle(reference);
-
-                //quit
-                return;
-            }
 
             //get port name 
             string name = MidiInternal.rtmidi_get_port_name(reference, port);
@@ -195,22 +193,9 @@ namespace Lopea.Midi
             MidiInternal.rtmidi_open_port(reference, port, "LopeaMidi port: " + name);
 
             //create midi input handle
-            MidiInDevice device = new MidiInDevice(port, reference, name);
+            return new MidiInDevice(port, reference, name);
 
-            //add to array
-            if (currdevices == null)
-            {
-                currdevices = new MidiInDevice[1];
-                currdevices[0] = device;
-            }
-            else
-            {
-                var newdevices = new MidiInDevice[currdevices.Length + 1];
-                for (int i = 0; i < currdevices.Length; i++)
-                    newdevices[i] = currdevices[i];
-                newdevices[currdevices.Length] = device;
-                currdevices = newdevices;
-            }
+
         }
 
         //creates a dummy data for any uninitialized midi notes
@@ -223,9 +208,6 @@ namespace Lopea.Midi
         //removes the device from the currrent devices.
         static void removeDevice(uint port)
         {
-            if (port >= GetPortCount())
-                return;
-
             //free ptr
             freeHandle(currdevices[port].ptr);
             currdevices[port] = null;
@@ -234,13 +216,18 @@ namespace Lopea.Midi
         //remove all references of midi devices and clean all values.
         static void Shutdown()
         {
+            //call event
+            //?.Invoke();
+
             for (uint i = 0; i < currdevices.Length; i++)
             {
                 removeDevice(i);
             }
             currdevices = null;
+            Destroy(_update);
             _update = null;
             _initialized = false;
+            OnShutdown = null;
         }
 
 
@@ -288,30 +275,55 @@ namespace Lopea.Midi
                 return;
 
             var newPortCount = GetPortCount();
-            //find the device removed/added 
-            for (uint i = 0; i < newPortCount; i++)
+            if (newPortCount == 0)
             {
-                string name = MidiInternal.rtmidi_get_port_name(currdevices[0].ptr, i);
-                for (int j = 0; j < currdevices.Length; j++)
+                for (uint i = 0; i < portCount; i++)
                 {
-                    if (currdevices[j].name == name)
-                        continue;
-                    //once found, print message
-                    else if (currdevices[j].name != name && j == currdevices.Length - 1)
-                    {
-                        if (portCount < newPortCount)
-                            print("Midi Device Added: " + name);
-                        else
-                            print("Midi Device Removed: " + currdevices[j].name);
-                    }
+                    print("Midi Device Removed: " + currdevices[i].name);
                 }
 
-            }
-            //shutdown the system
-            Shutdown();
+                portCount = 0;
 
-            //reinitialize system
-            Initialize();
+                Shutdown();
+            }
+            else
+            {
+                //find the device removed/added 
+                for (uint i = 0; i < newPortCount; i++)
+                {
+                    string name = MidiInternal.rtmidi_get_port_name(currdevices[0].ptr, i);
+                    for (int j = 0; j < currdevices.Length; j++)
+                    {
+                        if (currdevices[j].name == name)
+                            continue;
+                        //once found, print message
+                        if (currdevices[j].name != name && j == currdevices.Length - 1)
+                        {
+                            if (portCount < newPortCount)
+                                print("Midi Device Added: " + name);
+                            else
+                                print("Midi Device Removed: " + currdevices[j].name);
+                        }
+                    }
+
+                }
+
+                portCount = newPortCount;
+
+                for (uint i = 0; i < currdevices.Length; i++)
+                {
+                    removeDevice(i);
+                }
+
+                currdevices = null;
+                currdevices = new MidiInDevice[portCount];
+                for (uint i = 0; i < portCount; i++)
+                {
+                    currdevices[i] = CreateDevice(i);
+                }
+            }
+
+
         }
 
         #endregion
@@ -426,10 +438,12 @@ namespace Lopea.Midi
                 }
                 //hide the game object from everything
                 _update.gameObject.hideFlags = HideFlags.HideInHierarchy;
+
+                currdevices = new MidiInDevice[portCount];
                 //add all devices
                 for (uint i = 0; i < portCount; i++)
                 {
-                    addDevice(i);
+                    currdevices[i] = CreateDevice(i);
                 }
                 _initialized = true;
             }
@@ -657,6 +671,9 @@ namespace Lopea.Midi
 
                         //add data to the device
                         currdevices[i].AddData(data);
+
+                        //send data to event
+                        //OnMidiReceived?.Invoke();
                     }
 
                 }
