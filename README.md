@@ -46,9 +46,4 @@ Supported Devices:
 
 ---
 # TODO:
-  
-  -Finish Launchpad pro helper functions
-  
-  -Add Launch Control XL 
-  
   -Integrate with SuperControls
