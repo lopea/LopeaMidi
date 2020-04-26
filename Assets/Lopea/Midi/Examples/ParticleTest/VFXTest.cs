@@ -10,8 +10,12 @@ public class VFXTest : MonoBehaviour
 {
 
     ParticleSystem vs;
-    [SerializeField]
-    private MidiID id;
+
+
+    [SerializeField] private MidiID OnPulse;
+    
+    [SerializeField] private MidiID OnShake;
+
     [SerializeField] private Color HighlightedColor = Color.red;
 
     void Awake()
@@ -23,7 +27,7 @@ public class VFXTest : MonoBehaviour
     {
         var main = vs.main;
         var size = vs.sizeOverLifetime;
-        if (MidiInput.GetNote(0x3C, 0))
+        if (MidiInput.OnMidi(OnPulse))
         {
             main.startSizeMultiplier = 3;
             size.sizeMultiplier += 0.3f;
@@ -42,7 +46,7 @@ public class VFXTest : MonoBehaviour
         main.startColor = Color.Lerp(Color.white, HighlightedColor, t);
         size.sizeMultiplier = Mathf.Lerp(1, 1.3f, t);
         var v = vs.noise;
-        v.frequency = v.strengthMultiplier = 6 * MidiInput.GetCCValue(0x4D, 0)/(float)MidiInput.MaxMidiValue;
+        v.frequency = v.strengthMultiplier = 6 * MidiInput.GetMidiValue(OnShake)/(float)MidiInput.MaxMidiValue;
 
     }
 }

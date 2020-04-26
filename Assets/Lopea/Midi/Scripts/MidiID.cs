@@ -14,13 +14,14 @@ namespace Lopea.Midi
         
         public int port = -1;
         public int channel = -1;
-        public int data1  = -1;
-
-        public MidiID(int channel, int data1, int port)
+        public int data1 = -1;
+        public MidiStatus status;
+        public MidiID(int channel, int data1, int port, MidiStatus status)
         {
             this.channel = channel;
             this.data1 = data1;
             this.port = port;
+            this.status = status;
         }
     }
 

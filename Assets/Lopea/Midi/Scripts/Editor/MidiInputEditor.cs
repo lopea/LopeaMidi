@@ -49,7 +49,7 @@ namespace Lopea.Midi.Editor
         {
             if (obj == PlayModeStateChange.ExitingEditMode &&  _initialized)
             {
-                OnNextNote?.Invoke(new MidiID(-1, -1 , -1));
+                OnNextNote?.Invoke(new MidiID(-1, -1 , -1, MidiStatus.Dummy));
                 Shutdown();
             }
         }
@@ -62,7 +62,7 @@ namespace Lopea.Midi.Editor
                 || EditorApplication.timeSinceStartup - startTime > 10 
                 || devices.Length != MidiInput.GetPortCount())
             {
-                OnNextNote?.Invoke(new MidiID(-1, -1 , -1));
+                OnNextNote?.Invoke(new MidiID(-1, -1 , -1, MidiStatus.Dummy));
                 Shutdown();
                 return;
             }
@@ -82,8 +82,12 @@ namespace Lopea.Midi.Editor
 
                     byte[] m = new byte[Marshal.ReadInt32(size)];
                     Marshal.Copy(messages, m, 0, m.Length);
+                    var status = (MidiStatus) ((m[0] >> 4));
 
-                    OnNextNote?.Invoke(new MidiID(m[0] & 0x0F, m[1],i ));
+                    if (status == MidiStatus.NoteOff)
+                        status = MidiStatus.NoteOn;
+                    
+                    OnNextNote?.Invoke(new MidiID(m[0] & 0x0F, m[1],i , status));
                     Shutdown();
                     Marshal.FreeHGlobal(size);
                     Marshal.FreeHGlobal(messages);

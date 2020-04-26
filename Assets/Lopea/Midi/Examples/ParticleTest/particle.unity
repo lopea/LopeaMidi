@@ -4906,6 +4906,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fbd5c32bdf907b4daa63738ae429b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnPulse:
+    port: 0
+    channel: 0
+    data1: 60
+    status: 8
+  OnShake:
+    port: 0
+    channel: 0
+    data1: 77
+    status: 11
   HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!199 &114003821
 ParticleSystemRenderer:
@@ -14428,6 +14438,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fbd5c32bdf907b4daa63738ae429b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnPulse:
+    port: 0
+    channel: 0
+    data1: 60
+    status: 8
+  OnShake:
+    port: 0
+    channel: 0
+    data1: 77
+    status: 11
   HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &460726362
 GameObject:
@@ -14698,8 +14718,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e8e86b47f32d6849a7c9686f75d3e64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  axis: {x: 0, y: 0, z: 10}
+  axis: {x: 0, y: 0, z: 20}
   speed: 20
+  OnRotate:
+    port: 0
+    channel: 0
+    data1: 78
+    status: 11
 --- !u!1 &1405794983
 GameObject:
   m_ObjectHideFlags: 0
@@ -14745,6 +14770,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fbd5c32bdf907b4daa63738ae429b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnPulse:
+    port: 0
+    channel: 0
+    data1: 60
+    status: 8
+  OnShake:
+    port: 0
+    channel: 0
+    data1: 77
+    status: 11
   HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!199 &1405794986
 ParticleSystemRenderer:
@@ -19522,6 +19557,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fbd5c32bdf907b4daa63738ae429b40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  OnPulse:
+    port: 0
+    channel: 0
+    data1: 60
+    status: 8
+  OnShake:
+    port: 0
+    channel: 0
+    data1: 77
+    status: 11
   HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!199 &1464729819
 ParticleSystemRenderer:

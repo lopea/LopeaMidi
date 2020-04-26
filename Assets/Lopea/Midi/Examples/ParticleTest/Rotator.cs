@@ -9,6 +9,7 @@ public class Rotator : MonoBehaviour
     private Vector3 axis;
 
     [SerializeField] private float speed;
+    [SerializeField] private MidiID OnRotate;
     private float currrot;
 
     // Start is called before the first frame update
@@ -20,7 +21,7 @@ public class Rotator : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float midi = (MidiInput.GetCCValue(0x38, 0) / (float) MidiInput.MaxMidiValue);
+        float midi = (MidiInput.GetMidiValue(OnRotate) / (float) MidiInput.MaxMidiValue);
         currrot += midi  * speed * Time.deltaTime ;
         transform.rotation = Quaternion.Euler(axis * currrot);
         

@@ -241,7 +241,7 @@ namespace Lopea.Midi
 
 
         //get data2 from midi
-        static int GetMidi(int data1, int port = -1, MidiStatus status = MidiStatus.Dummy)
+        static int GetMidi(int data1, int port = -1, int channel = -1,MidiStatus status = MidiStatus.Dummy)
         {
             //initialize if necessary
             if (!_initialized)
@@ -261,7 +261,9 @@ namespace Lopea.Midi
                     //if the note is active 
                     if (currdevices[i].DataActive(data1, status))
                     {
-                        return currdevices[i].getData(data1).data2;
+                        var data = currdevices[i].getData(data1);
+                        if(channel > 0 || channel == data.channel)
+                            return currdevices[i].getData(data1).data2;
                     }
                 }
                 return 0;
@@ -520,10 +522,11 @@ namespace Lopea.Midi
         /// </summary>
         /// <param name="data1">Controller number</param>
         /// <param name="port">Optional: device port </param>
+        /// <param name="channel">Optional: specify the channel the note is in.</param>
         /// <returns>CC value</returns>
-        public static int GetCCValue(int data1, int port = -1)
+        public static int GetCCValue(int data1, int port = -1, int channel = -1)
         {
-            return GetMidi(data1, port, MidiStatus.ControlChange);
+            return GetMidi(data1, port, channel, MidiStatus.ControlChange);
         }
 
         /// <summary>
@@ -533,14 +536,15 @@ namespace Lopea.Midi
         /// </summary>
         /// <param name="data1">Midi Note Value</param>
         /// <param name="port">Optional: Device port</param>
+        /// <param name="channel">Optional: specify the channel the note is in.</param>
         /// <returns>Velocity/Velocity Aftertouch</returns>
-        public static int GetNoteValue(int data1, int port = -1)
+        public static int GetNoteValue(int data1, int port = -1, int channel = -1)
         {
-            var aftertouch = GetMidi(data1, port, MidiStatus.PolyKey);
+            var aftertouch = GetMidi(data1, port, channel, MidiStatus.PolyKey);
             if (aftertouch != 0)
                 return aftertouch;
             else
-                return GetMidi(data1, port, MidiStatus.NoteOn);
+                return GetMidi(data1, port, channel, MidiStatus.NoteOn);
         }
 
 
@@ -551,24 +555,26 @@ namespace Lopea.Midi
         /// </summary>
         /// <param name="data1">Number representing CC midi value</param>
         /// <param name="port">Optional: device port to search CC midi value</param>
+        /// <param name="channel">Optional: specify the channel the note is in</param>
         /// <returns>true if note value at data1 is not zero, false if zero</returns>
-        public static bool GetNote(int data1, int port = -1)
+        public static bool GetNote(int data1, int port = -1, int channel = -1)
         {
-            return GetNoteValue(data1, port) != 0;
+            return GetNoteValue(data1, port, channel) != 0;
         }
 
 
-        /// <summary>
-        ///Get Control Change status.
-        ///Returns true if CC value is active and not zero, false if value is zero.
-        ///It will find the CC value from all devices unless specified a given port
-        /// </summary>
-        /// <param name="data1">Number representing CC midi value</param>
-        /// <param name="port">Optional: device port to search CC midi value</param>
-        /// <returns>true if CC value at data1 is not zero, false if zero</returns>
-        public static bool GetCC(int data1, int port = -1)
+        ///  <summary>
+        /// Get Control Change status.
+        /// Returns true if CC value is active and not zero, false if value is zero.
+        /// It will find the CC value from all devices unless specified a given port
+        ///  </summary>
+        ///  <param name="data1">Number representing CC midi value</param>
+        ///  <param name="port">Optional: device port to search CC midi value</param>
+        ///  <param name="channel">Optional: specify the channel the note is in </param>
+        ///  <returns>true if CC value at data1 is not zero, false if zero</returns>
+        public static bool GetCC(int data1, int port = -1, int channel = -1)
         {
-            return GetCCValue(data1, port) != 0;
+            return GetCCValue(data1, port, channel) != 0;
         }
 
         /// <summary>
@@ -600,6 +606,22 @@ namespace Lopea.Midi
             return currdevices[port].name;
 
         }
+
+        public static bool OnMidi(MidiID id)
+        {
+            return GetMidiValue(id) != 0;
+        }
+
+        /// <summary>
+        /// Get the 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static int GetMidiValue(MidiID id)
+        {
+            return GetMidi(id.data1, id.port, id.channel, id.status);
+        }
+
         #endregion
 
         #region MonoBehaviour Functions
@@ -609,6 +631,7 @@ namespace Lopea.Midi
             Shutdown();
         }
 
+        
         //On every frame, get current status of each midi device and store all its values.
         void Update()
         {
