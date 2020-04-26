@@ -144,7 +144,7 @@ namespace Lopea.Midi
         /// <summary>
         /// Gets invoked whenever a midi device has been received from any device
         /// </summary>
-        public static event MidiInFunc OnMidiReceived;
+       
 
         /// <summary>
         /// get the amount of devices plugged in at a given time
@@ -161,6 +161,11 @@ namespace Lopea.Midi
             {
                 _port = value;
             }
+        }
+
+        public bool IsInitialized
+        {
+            get { return _initialized; }
         }
         #endregion
 
@@ -214,10 +219,13 @@ namespace Lopea.Midi
         }
 
         //remove all references of midi devices and clean all values.
-        static void Shutdown()
+        public static void Shutdown()
         {
             //call event
             //?.Invoke();
+            if (!_initialized)
+                return;
+
 
             for (uint i = 0; i < currdevices.Length; i++)
             {
@@ -437,7 +445,7 @@ namespace Lopea.Midi
                     _update = new GameObject("LopeaMidi").AddComponent<MidiInput>();
                 }
                 //hide the game object from everything
-                _update.gameObject.hideFlags = HideFlags.HideInHierarchy;
+                //_update.gameObject.hideFlags = HideFlags.HideInHierarchy;
 
                 currdevices = new MidiInDevice[portCount];
                 //add all devices
@@ -662,7 +670,8 @@ namespace Lopea.Midi
                                             (status & 0x0F),                       //channel bit (0-15)
                                             m[1],                                   //data1 byte (stores midi note ID usually)
                                             (currsize == 2) ? byte.MinValue : m[2], //data2 byte (sometimes this is 0 due to the length of the message)
-                                            m);                                          //raw data of the message
+                                            m,                                           //raw data of the message
+                                            i);                                      //device port ID
 
                         //some devices for whatever reason have both note on and off to be the same value
                         //so note on/off status is based on velocity
@@ -672,8 +681,7 @@ namespace Lopea.Midi
                         //add data to the device
                         currdevices[i].AddData(data);
 
-                        //send data to event
-                        //OnMidiReceived?.Invoke();
+                        
                     }
 
                 }

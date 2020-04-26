@@ -34,7 +34,9 @@ namespace Lopea.Midi
 
         public byte[] rawData;
 
-        public MidiData(float timeStamp, MidiStatus status, int channel, byte data1, byte data2, byte[] rawData)
+        public int port;
+
+        public MidiData(float timeStamp, MidiStatus status, int channel, byte data1, byte data2, byte[] rawData, int port = 0)
         {
             this.timeStamp = timeStamp;
             this.status = status;
@@ -42,6 +44,7 @@ namespace Lopea.Midi
             this.data1 = data1;
             this.data2 = data2;
             this.rawData = rawData;
+            this.port = port;
         }
     }
 }

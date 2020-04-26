@@ -10,7 +10,8 @@ public class VFXTest : MonoBehaviour
 {
 
     ParticleSystem vs;
-
+    [SerializeField]
+    private MidiID id;
     [SerializeField] private Color HighlightedColor = Color.red;
 
     void Awake()

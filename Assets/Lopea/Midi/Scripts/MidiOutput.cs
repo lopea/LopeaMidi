@@ -1,4 +1,8 @@
-﻿using System.Collections;
+﻿//FileName:    MidiOutput.cs
+//Author:      Javier Sandoval (Lopea)
+//GitHub:      https://github.com/lopea
+//Description: Wrapper class for sending MIDI messages through RTMidi
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
