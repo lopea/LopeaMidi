@@ -2,12 +2,8 @@
 //Author:      Javier Sandoval (Lopea)
 //GitHub:      https://github.com/lopea
 //Description: Wrapper class for sending MIDI messages through RTMidi
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Xml;
 using Lopea.Midi.Internal;
 
 namespace Lopea.Midi
@@ -171,7 +167,7 @@ namespace Lopea.Midi
         /// </summary>
         /// <param name="port">the port number that represents the device to send the note to.</param>
         /// <param name="data">The data of the note that will be sent to the device.</param>
-        public static void SendData(uint port, MidiData data)
+        private static void SendData(uint port, MidiData data)
         {
             //cannot do anything with a dummy 
             if(data.status == MidiStatus.Dummy)
@@ -270,6 +266,7 @@ namespace Lopea.Midi
             Shutdown();
         }
 
+        //Inside this update function is the hotswapping support for MIDI output devices.
         void Update()
         {
             uint current = GetCurrentPortCount();

@@ -4909,14 +4909,14 @@ MonoBehaviour:
   OnPulse:
     port: 0
     channel: 0
-    data1: 60
+    data1: 41
     status: 8
   OnShake:
     port: 0
     channel: 0
-    data1: 77
+    data1: 84
     status: 11
-  HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
+  HighlightedColor: {r: 0.09743309, g: 0, b: 1, a: 1}
 --- !u!199 &114003821
 ParticleSystemRenderer:
   serializedVersion: 6
@@ -14441,14 +14441,14 @@ MonoBehaviour:
   OnPulse:
     port: 0
     channel: 0
-    data1: 60
+    data1: 41
     status: 8
   OnShake:
     port: 0
     channel: 0
-    data1: 77
+    data1: 84
     status: 11
-  HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
+  HighlightedColor: {r: 0.09743309, g: 0, b: 1, a: 1}
 --- !u!1 &460726362
 GameObject:
   m_ObjectHideFlags: 0
@@ -14773,14 +14773,14 @@ MonoBehaviour:
   OnPulse:
     port: 0
     channel: 0
-    data1: 60
+    data1: 41
     status: 8
   OnShake:
     port: 0
     channel: 0
-    data1: 77
+    data1: 84
     status: 11
-  HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
+  HighlightedColor: {r: 0.09743309, g: 0, b: 1, a: 1}
 --- !u!199 &1405794986
 ParticleSystemRenderer:
   serializedVersion: 6
@@ -19560,14 +19560,14 @@ MonoBehaviour:
   OnPulse:
     port: 0
     channel: 0
-    data1: 60
+    data1: 41
     status: 8
   OnShake:
     port: 0
     channel: 0
-    data1: 77
+    data1: 84
     status: 11
-  HighlightedColor: {r: 1, g: 0, b: 0, a: 1}
+  HighlightedColor: {r: 0.09743309, g: 0, b: 1, a: 1}
 --- !u!199 &1464729819
 ParticleSystemRenderer:
   serializedVersion: 6

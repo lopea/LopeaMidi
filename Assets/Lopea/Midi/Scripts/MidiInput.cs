@@ -716,10 +716,7 @@ namespace Lopea.Midi
             }
 
         }
-        void LateUpdate()
-        {
 
-        }
         #endregion
     }
 }
