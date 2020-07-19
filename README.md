@@ -57,7 +57,7 @@ public class ExampleScript : MonoBehavior
 
 ![](https://i.imgur.com/4oimtJ1.png)
 
-**Clicking 'Get MIDI Value' will change the values on the MidiID based on the next midi message that gets sent to any Midi device connected.**
+**Clicking 'Get MIDI Value' will change the values on the MidiID based on the next midi message that is received from any Midi device connected.**
 
 ### MIDI Output
 Sending MIDI data to a device can happen in multiple ways:
