@@ -11,7 +11,7 @@ A cross platform [MIDI](https://wikipedia.org/wiki/MIDI) wrapper for Unity3D usi
 ```csharp
 using Lopea.Midi;
 ```
-### Note/Control Change (CC) input
+### MIDI Input
 To get the value of a note or CC value of any MIDI device, use
  ```csharp
  int MidiInput.GetNoteValue(int noteID);
@@ -35,7 +35,51 @@ int MidiInput.GetNoteValue(int ccID, int port);
 bool MidiInput.GetNote(int noteID, int port);
 bool MidiInput.GetCC(int ccID, int port);
 ```
-### Midi Output
+
+For Unity Editor support, you can use the MidiID variable to change the type of midi note to find for your project and easily change it's values in the editor.
+
+Example:
+```csharp
+public class ExampleScript : MonoBehavior
+{
+  public MidiID OnRotate;
+  
+  void Update()
+  {
+    if(MidiInput.GetNote(OnRotate)
+    {
+      //do some rotating idk
+    }
+  }
+}
+```
+**What is shown in the editor:**
+
+![](https://i.imgur.com/4oimtJ1.png)
+
+**Clicking 'Get MIDI Value' will change the values on the MidiID based on the next midi message that gets sent to any Midi device connected.**
+
+### MIDI Output
+Sending MIDI data to a device can happen in multiple ways:
+
+If the message that is being sent is a single note, use
+```csharp
+//port: output device id to send data to.
+//status: type of note to send to the device.(NoteOn, NoteOff, CC, etc.)
+//data1: first half of note. (usually note value)
+//data2: second half of note. (usually note velocity)
+//channel: channel number to send the channel to the device.
+void MidiOutput.SendSimpleData(uint port, MidiStatus status, byte data1, byte data2, byte channel =0);
+```
+to send the single note.
+
+If more complicated messages(like Sysex) need to be sent, use 
+```csharp
+//port: output device id to send data to.
+//data: data that gets sent straight to the device.
+void MidiOutput.SendRawData(uint port, byte[] data);
+```
+
 ---
 ## Device Specific Features
 There are specific functions to help with certain devices and their features.
