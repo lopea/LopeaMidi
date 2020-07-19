@@ -3,16 +3,16 @@ A cross platform [MIDI](https://wikipedia.org/wiki/MIDI) wrapper for Unity3D usi
 
 ## Supported Operating Systems
   - Linux with ALSA
-  - Windows
-  (Mac OS not tested yet and will not work for now.)
+  - Windows (Must have VS C++ Redistributable in order for this to work) 
+  
+  **Note:** Mac OS will not work with this library as I will need a mac to make it work. if you have a Mac and are willing to be my guinea pig for this project, feel free to     contact me.
 
 ## How To Use
-NOTE: There is no need to add a GameObject or anything, just use these functions in your script and you are good to go.
 ```csharp
 using Lopea.Midi;
 ```
 ### Note/Control Change (CC) input
-To get the value of a note/CC value, use
+To get the value of a note or CC value of any MIDI device, use
  ```csharp
  int MidiInput.GetNoteValue(int noteID);
  int MidiInput.GetNoteValue(int ccID);
@@ -21,14 +21,14 @@ To get the value of a note/CC value, use
  
  
  
-To get the status of a note/CC value (whether the note is pressed / CC is being used), use
+To get the status of a note/CC value (whether the note is pressed / CC is being used) of any MIDI Device, use
 ```csharp
 bool MidiInput.GetNote(int noteID);
 bool MidiInput.GetCC(int ccID);
 ```
 respectively.
 
-You can also specify the type of device that you want to use by adding the device port into these functions.
+You can also specify the type of MIDI device that you want to use by adding the device port into these functions.
 ```csharp
 int MidiInput.GetNoteValue(int noteID, int port);
 int MidiInput.GetNoteValue(int ccID, int port);
@@ -43,7 +43,5 @@ There are specific functions to help with certain devices and their features.
 Supported Devices:
 
   -Launchpad Pro
-
----
-# TODO:
-  -Integrate with SuperControls
+  
+  -LaunchControl XL (Partial)
