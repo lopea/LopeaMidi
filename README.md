@@ -1,5 +1,8 @@
+
 # LopeaMidi
 A cross platform [MIDI](https://wikipedia.org/wiki/MIDI) wrapper for Unity3D using [RtMidi](https://www.music.mcgill.ca/~gary/rtmidi/) with functionality for device specific features.
+
+![main-vid](https://media.giphy.com/media/QsZ8uV7NUIL3K6PaMU/giphy.gif)
 
 ## Supported Operating Systems
   - Linux with ALSA
@@ -59,6 +62,8 @@ public class ExampleScript : MonoBehavior
 
 **Clicking 'Get MIDI Value' will change the values on the MidiID based on the next midi message that is received from any Midi device connected.**
 
+#### Video Example
+![img-example](https://media.giphy.com/media/520X2Hq8WfInIoSgK6/giphy.gif)
 ### MIDI Output
 Sending MIDI data to a device can happen in multiple ways:
 
